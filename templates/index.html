@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Transformateur intelligent MCD vers MLD — Système hybride IA + Règles Merise">
+    <title>MCD → MLD | Transformateur IA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* ══════════════════════════════════════════════
+           DESIGN SYSTEM — Variables & Reset
+           ══════════════════════════════════════════════ */
+        :root {
+            --bg-primary: #0a0e1a;
+            --bg-secondary: #111827;
+            --bg-card: #1a1f35;
+            --bg-card-hover: #1e2440;
+            --bg-input: #0d1224;
+            --border-color: #2a3052;
+            --border-active: #6366f1;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --accent-indigo: #6366f1;
+            --accent-indigo-light: #818cf8;
+            --accent-violet: #8b5cf6;
+            --accent-emerald: #10b981;
+            --accent-amber: #f59e0b;
+            --accent-rose: #f43f5e;
+            --accent-cyan: #06b6d4;
+            --gradient-primary: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a78bfa 100%);
+            --gradient-card: linear-gradient(145deg, rgba(99,102,241,0.08) 0%, rgba(139,92,246,0.04) 100%);
+            --gradient-glow: radial-gradient(600px at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(99,102,241,0.07) 0%, transparent 70%);
+            --shadow-lg: 0 20px 60px -12px rgba(0,0,0,0.5);
+            --shadow-glow: 0 0 40px rgba(99,102,241,0.15);
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 20px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* ══════════════════════════════════════════════
+           BACKGROUND EFFECTS
+           ══════════════════════════════════════════════ */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background:
+                radial-gradient(ellipse 80% 50% at 20% 20%, rgba(99,102,241,0.08) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 40% at 80% 80%, rgba(139,92,246,0.06) 0%, transparent 60%),
+                radial-gradient(ellipse 50% 30% at 50% 0%, rgba(6,182,212,0.04) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ══════════════════════════════════════════════
+           HEADER
+           ══════════════════════════════════════════════ */
+        .header {
+            position: relative;
+            z-index: 10;
+            padding: 24px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border-color);
+            background: rgba(10,14,26,0.8);
+            -webkit-backdrop-filter: blur(20px);
+            backdrop-filter: blur(20px);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .logo {
+            width: 44px; height: 44px;
+            background: var(--gradient-primary);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: 800;
+            color: white;
+            box-shadow: var(--shadow-glow);
+            animation: logoPulse 3s ease-in-out infinite;
+        }
+
+        @keyframes logoPulse {
+            0%, 100% { box-shadow: 0 0 20px rgba(99,102,241,0.3); }
+            50% { box-shadow: 0 0 40px rgba(99,102,241,0.5); }
+        }
+
+        .header h1 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.02em;
+        }
+
+        .header-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            background: rgba(16,185,129,0.1);
+            border: 1px solid rgba(16,185,129,0.25);
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--accent-emerald);
+            letter-spacing: 0.03em;
+        }
+
+        .header-badge::before {
+            content: '';
+            width: 7px; height: 7px;
+            background: var(--accent-emerald);
+            border-radius: 50%;
+            animation: blink 2s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        /* ══════════════════════════════════════════════
+           MAIN LAYOUT
+           ══════════════════════════════════════════════ */
+        .main-container {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+            min-height: calc(100vh - 85px);
+        }
+
+        .panel {
+            padding: 32px;
+            overflow-y: auto;
+            max-height: calc(100vh - 85px);
+        }
+
+        .panel-left {
+            border-right: 1px solid var(--border-color);
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .panel-icon {
+            width: 36px; height: 36px;
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .panel-icon.input { background: rgba(99,102,241,0.15); }
+        .panel-icon.output { background: rgba(16,185,129,0.15); }
+
+        .panel-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .panel-subtitle {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* ══════════════════════════════════════════════
+           PRESET BUTTONS
+           ══════════════════════════════════════════════ */
+        .presets {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .preset-btn {
+            flex: 1;
+            min-width: 120px;
+            padding: 12px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            background: var(--bg-card);
+            color: var(--text-secondary);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .preset-btn:hover {
+            background: var(--bg-card-hover);
+            border-color: var(--accent-indigo);
+            color: var(--text-primary);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(99,102,241,0.15);
+        }
+
+        .preset-btn.active {
+            background: rgba(99,102,241,0.12);
+            border-color: var(--accent-indigo);
+            color: var(--accent-indigo-light);
+        }
+
+        .preset-emoji { font-size: 1.1rem; }
+
+        /* ══════════════════════════════════════════════
+           FORM SECTIONS
+           ══════════════════════════════════════════════ */
+        .section {
+            margin-bottom: 20px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .section-label {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .add-btn {
+            padding: 5px 12px;
+            border: 1px dashed var(--border-color);
+            border-radius: var(--radius-sm);
+            background: transparent;
+            color: var(--accent-indigo-light);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .add-btn:hover {
+            border-color: var(--accent-indigo);
+            background: rgba(99,102,241,0.08);
+        }
+
+        /* ══════════════════════════════════════════════
+           ENTITY / ASSOCIATION CARDS
+           ══════════════════════════════════════════════ */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            margin-bottom: 12px;
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .card:hover {
+            border-color: rgba(99,102,241,0.3);
+            background: var(--bg-card-hover);
+        }
+
+        .card-row {
+            display: grid;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .card-row.two-col { grid-template-columns: 1fr 1fr; }
+        .card-row.three-col { grid-template-columns: 1fr 1fr 1fr; }
+
+        .field-label {
+            display: block;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 5px;
+        }
+
+        .field-input {
+            width: 100%;
+            padding: 9px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            background: var(--bg-input);
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.82rem;
+            transition: var(--transition);
+        }
+
+        .field-input:focus {
+            outline: none;
+            border-color: var(--accent-indigo);
+            box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
+        }
+
+        .field-input::placeholder { color: var(--text-muted); }
+
+        .remove-card {
+            position: absolute;
+            top: 10px; right: 10px;
+            width: 24px; height: 24px;
+            border: none;
+            border-radius: 6px;
+            background: rgba(244,63,94,0.1);
+            color: var(--accent-rose);
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+            opacity: 0;
+        }
+
+        .card:hover .remove-card { opacity: 1; }
+
+        .remove-card:hover {
+            background: rgba(244,63,94,0.25);
+            transform: scale(1.1);
+        }
+
+        /* ══════════════════════════════════════════════
+           TRANSFORM BUTTON
+           ══════════════════════════════════════════════ */
+        .transform-btn {
+            width: 100%;
+            padding: 16px 24px;
+            border: none;
+            border-radius: var(--radius-md);
+            background: var(--gradient-primary);
+            color: white;
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            margin-top: 12px;
+        }
+
+        .transform-btn::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%; right: 0; bottom: 0;
+            width: 300%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+            transition: left 0.6s;
+        }
+
+        .transform-btn:hover::before { left: 100%; }
+        .transform-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(99,102,241,0.35);
+        }
+
+        .transform-btn:active { transform: translateY(0); }
+
+        .transform-btn.loading {
+            pointer-events: none;
+            opacity: 0.8;
+        }
+
+        /* ══════════════════════════════════════════════
+           OUTPUT — MLD TABLE
+           ══════════════════════════════════════════════ */
+        .output-placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 400px;
+            color: var(--text-muted);
+            text-align: center;
+            gap: 16px;
+        }
+
+        .placeholder-icon {
+            font-size: 48px;
+            opacity: 0.3;
+        }
+
+        .placeholder-text {
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        .mld-section {
+            margin-bottom: 28px;
+        }
+
+        .mld-section-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 14px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        /* MLD Notation */
+        .mld-notation {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .mld-line {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.82rem;
+            padding: 10px 14px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            border-left: 3px solid var(--accent-indigo);
+            transition: var(--transition);
+            line-height: 1.6;
+        }
+
+        .mld-line:hover {
+            border-left-color: var(--accent-violet);
+            background: var(--bg-card-hover);
+        }
+
+        .mld-pk { color: var(--accent-amber); font-weight: 600; }
+        .mld-fk { color: var(--accent-cyan); font-weight: 600; }
+        .mld-pkfk { color: var(--accent-emerald); font-weight: 600; }
+        .mld-table-name { color: var(--accent-indigo-light); font-weight: 700; }
+
+        /* SQL Block */
+        .sql-container {
+            position: relative;
+        }
+
+        .sql-block {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            padding: 20px;
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            overflow-x: auto;
+            white-space: pre;
+            line-height: 1.8;
+            color: var(--text-secondary);
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .sql-keyword { color: var(--accent-violet); font-weight: 600; }
+        .sql-type { color: var(--accent-cyan); }
+        .sql-name { color: var(--accent-amber); }
+        .sql-constraint { color: var(--accent-rose); font-weight: 600; }
+
+        .copy-btn {
+            position: absolute;
+            top: 10px; right: 10px;
+            padding: 7px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            background: var(--bg-card);
+            color: var(--text-secondary);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.72rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            z-index: 5;
+        }
+
+        .copy-btn:hover {
+            background: var(--accent-indigo);
+            color: white;
+            border-color: var(--accent-indigo);
+        }
+
+        .copy-btn.copied {
+            background: var(--accent-emerald);
+            border-color: var(--accent-emerald);
+            color: white;
+        }
+
+        /* Stats bar */
+        .stats-bar {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .stat-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 999px;
+            font-size: 0.78rem;
+            font-weight: 600;
+        }
+
+        .stat-value { color: var(--accent-indigo-light); }
+
+        /* Legend */
+        .legend {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .legend-dot {
+            width: 10px; height: 10px;
+            border-radius: 3px;
+        }
+
+        .legend-dot.pk { background: var(--accent-amber); }
+        .legend-dot.fk { background: var(--accent-cyan); }
+        .legend-dot.pkfk { background: var(--accent-emerald); }
+
+        /* ══════════════════════════════════════════════
+           ERROR TOAST
+           ══════════════════════════════════════════════ */
+        .toast {
+            position: fixed;
+            bottom: 24px; right: 24px;
+            padding: 14px 24px;
+            background: rgba(244,63,94,0.15);
+            border: 1px solid rgba(244,63,94,0.3);
+            border-radius: var(--radius-md);
+            color: var(--accent-rose);
+            font-size: 0.85rem;
+            font-weight: 600;
+            z-index: 1000;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: var(--transition);
+            -webkit-backdrop-filter: blur(12px);
+            backdrop-filter: blur(12px);
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        /* ══════════════════════════════════════════════
+           ANIMATIONS
+           ══════════════════════════════════════════════ */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-in {
+            animation: fadeInUp 0.4s ease-out forwards;
+        }
+
+        /* ══════════════════════════════════════════════
+           SCROLLBAR
+           ══════════════════════════════════════════════ */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+        /* ══════════════════════════════════════════════
+           RESPONSIVE
+           ══════════════════════════════════════════════ */
+        @media (max-width: 1024px) {
+            .main-container {
+                grid-template-columns: 1fr;
+            }
+            .panel-left { border-right: none; border-bottom: 1px solid var(--border-color); }
+            .panel { max-height: none; }
+        }
+
+        @media (max-width: 640px) {
+            .header { padding: 16px 20px; }
+            .panel { padding: 20px; }
+            .presets { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ═══════════ HEADER ═══════════ -->
+    <header class="header">
+        <div class="header-left">
+            <div class="logo">M</div>
+            <div>
+                <h1>MCD → MLD Transformer</h1>
+                <p style="font-size:0.72rem; color:var(--text-muted); margin-top:2px;">
+                    Système Hybride · IA + Règles Merise
+                </p>
+            </div>
+        </div>
+        <div class="header-badge">ML Model Ready</div>
+    </header>
+
+    <!-- ═══════════ MAIN ═══════════ -->
+    <div class="main-container">
+
+        <!-- ─── LEFT PANEL : INPUT ─── -->
+        <div class="panel panel-left">
+            <div class="panel-header">
+                <div class="panel-icon input">📥</div>
+                <div>
+                    <div class="panel-title">Modèle Conceptuel (MCD)</div>
+                    <div class="panel-subtitle">Définir les entités et associations</div>
+                </div>
+            </div>
+
+            <!-- Presets -->
+            <div class="presets">
+                <button class="preset-btn" onclick="chargerPreset('bibliotheque')">
+                    <span class="preset-emoji">📚</span> Bibliothèque
+                </button>
+                <button class="preset-btn" onclick="chargerPreset('universite')">
+                    <span class="preset-emoji">🎓</span> Université
+                </button>
+                <button class="preset-btn" onclick="chargerPreset('hopital')">
+                    <span class="preset-emoji">🏥</span> Hôpital
+                </button>
+            </div>
+
+            <!-- Entités -->
+            <div class="section">
+                <div class="section-header">
+                    <span class="section-label">Entités</span>
+                    <button class="add-btn" onclick="ajouterEntite()">+ Ajouter</button>
+                </div>
+                <div id="entites-container"></div>
+            </div>
+
+            <!-- Associations -->
+            <div class="section">
+                <div class="section-header">
+                    <span class="section-label">Associations</span>
+                    <button class="add-btn" onclick="ajouterAssociation()">+ Ajouter</button>
+                </div>
+                <div id="associations-container"></div>
+            </div>
+
+            <!-- Transform Button -->
+            <button class="transform-btn" id="btn-transformer" onclick="transformer()">
+                ⚡ Transformer MCD → MLD
+            </button>
+        </div>
+
+        <!-- ─── RIGHT PANEL : OUTPUT ─── -->
+        <div class="panel panel-right">
+            <div class="panel-header">
+                <div class="panel-icon output">📤</div>
+                <div>
+                    <div class="panel-title">Résultat (MLD + SQL)</div>
+                    <div class="panel-subtitle">Modèle logique généré automatiquement</div>
+                </div>
+            </div>
+
+            <div id="output-content">
+                <div class="output-placeholder">
+                    <div class="placeholder-icon">🔄</div>
+                    <div class="placeholder-text">
+                        Saisissez un MCD ou choisissez un preset,<br>
+                        puis cliquez sur <strong>Transformer</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+    /* ══════════════════════════════════════════════
+       PRESETS DATA
+       ══════════════════════════════════════════════ */
+    const PRESETS = {
+        bibliotheque: {
+            entites: [
+                { nom: "ADHERENT",  cle: "id_adherent",  attributs: "id_adherent, nom, prenom, email, date_naissance" },
+                { nom: "LIVRE",     cle: "isbn",         attributs: "isbn, titre, annee, nb_pages" },
+                { nom: "AUTEUR",    cle: "id_auteur",    attributs: "id_auteur, nom_auteur, nationalite" },
+                { nom: "CATEGORIE", cle: "id_categorie", attributs: "id_categorie, libelle" },
+            ],
+            associations: [
+                { nom: "emprunte",   entite1: "ADHERENT",  entite2: "LIVRE",     card1: "0,N", card2: "0,N", attributs: "date_emprunt, date_retour" },
+                { nom: "redige",     entite1: "AUTEUR",    entite2: "LIVRE",     card1: "1,N", card2: "0,N", attributs: "" },
+                { nom: "appartient", entite1: "CATEGORIE", entite2: "LIVRE",     card1: "1,N", card2: "1,1", attributs: "" },
+            ]
+        },
+        universite: {
+            entites: [
+                { nom: "ETUDIANT",   cle: "matricule",      attributs: "matricule, nom, prenom, filiere" },
+                { nom: "COURS",      cle: "id_cours",       attributs: "id_cours, intitule, credits, volume_horaire" },
+                { nom: "ENSEIGNANT", cle: "id_enseignant",  attributs: "id_enseignant, nom, grade, specialite" },
+                { nom: "SALLE",      cle: "id_salle",       attributs: "id_salle, capacite, batiment" },
+            ],
+            associations: [
+                { nom: "inscrit",  entite1: "ETUDIANT",   entite2: "COURS", card1: "0,N", card2: "0,N", attributs: "note, semestre" },
+                { nom: "enseigne", entite1: "ENSEIGNANT", entite2: "COURS", card1: "0,N", card2: "0,N", attributs: "" },
+                { nom: "reserve",  entite1: "SALLE",      entite2: "COURS", card1: "1,N", card2: "1,1", attributs: "horaire" },
+            ]
+        },
+        hopital: {
+            entites: [
+                { nom: "PATIENT",    cle: "id_patient",    attributs: "id_patient, nom, prenom, date_naissance, adresse" },
+                { nom: "MEDECIN",    cle: "id_medecin",    attributs: "id_medecin, nom, specialite, telephone" },
+                { nom: "SERVICE",    cle: "id_service",    attributs: "id_service, nom_service, etage, capacite" },
+                { nom: "MEDICAMENT", cle: "id_medicament", attributs: "id_medicament, nom_medicament, dosage, prix" },
+            ],
+            associations: [
+                { nom: "consulte",   entite1: "PATIENT", entite2: "MEDECIN",    card1: "0,N", card2: "0,N", attributs: "date_consultation, diagnostic" },
+                { nom: "appartient", entite1: "SERVICE", entite2: "MEDECIN",    card1: "1,N", card2: "1,1", attributs: "" },
+                { nom: "utilise",    entite1: "MEDECIN", entite2: "MEDICAMENT", card1: "0,N", card2: "0,N", attributs: "quantite" },
+            ]
+        }
+    };
+
+    let entiteCount = 0;
+    let associationCount = 0;
+
+    /* ══════════════════════════════════════════════
+       DYNAMIC FORM BUILDERS
+       ══════════════════════════════════════════════ */
+    function ajouterEntite(data = null) {
+        entiteCount++;
+        const id = `ent-${entiteCount}`;
+        const container = document.getElementById('entites-container');
+        const card = document.createElement('div');
+        card.className = 'card animate-in';
+        card.id = id;
+        card.innerHTML = `
+            <button class="remove-card" onclick="this.parentElement.remove()">✕</button>
+            <div class="card-row two-col">
+                <div>
+                    <label class="field-label">Nom de l'entité</label>
+                    <input class="field-input ent-nom" placeholder="Ex: ETUDIANT" value="${data ? data.nom : ''}">
+                </div>
+                <div>
+                    <label class="field-label">Clé primaire</label>
+                    <input class="field-input ent-cle" placeholder="Ex: id_etudiant" value="${data ? data.cle : ''}">
+                </div>
+            </div>
+            <div>
+                <label class="field-label">Attributs (séparés par des virgules)</label>
+                <input class="field-input ent-attrs" placeholder="id_etudiant, nom, prenom, filiere" value="${data ? data.attributs : ''}">
+            </div>
+        `;
+        container.appendChild(card);
+    }
+
+    function ajouterAssociation(data = null) {
+        associationCount++;
+        const id = `asso-${associationCount}`;
+        const container = document.getElementById('associations-container');
+        const card = document.createElement('div');
+        card.className = 'card animate-in';
+        card.id = id;
+        card.innerHTML = `
+            <button class="remove-card" onclick="this.parentElement.remove()">✕</button>
+            <div class="card-row three-col">
+                <div>
+                    <label class="field-label">Nom</label>
+                    <input class="field-input asso-nom" placeholder="Ex: inscrit" value="${data ? data.nom : ''}">
+                </div>
+                <div>
+                    <label class="field-label">Entité 1</label>
+                    <input class="field-input asso-e1" placeholder="ETUDIANT" value="${data ? data.entite1 : ''}">
+                </div>
+                <div>
+                    <label class="field-label">Entité 2</label>
+                    <input class="field-input asso-e2" placeholder="COURS" value="${data ? data.entite2 : ''}">
+                </div>
+            </div>
+            <div class="card-row three-col">
+                <div>
+                    <label class="field-label">Cardinalité 1</label>
+                    <input class="field-input asso-c1" placeholder="0,N" value="${data ? data.card1 : ''}">
+                </div>
+                <div>
+                    <label class="field-label">Cardinalité 2</label>
+                    <input class="field-input asso-c2" placeholder="0,N" value="${data ? data.card2 : ''}">
+                </div>
+                <div>
+                    <label class="field-label">Attributs</label>
+                    <input class="field-input asso-attrs" placeholder="note, semestre" value="${data ? data.attributs : ''}">
+                </div>
+            </div>
+        `;
+        container.appendChild(card);
+    }
+
+    /* ══════════════════════════════════════════════
+       PRESET LOADER
+       ══════════════════════════════════════════════ */
+    function chargerPreset(nom) {
+        const preset = PRESETS[nom];
+        if (!preset) return;
+
+        // Clear
+        document.getElementById('entites-container').innerHTML = '';
+        document.getElementById('associations-container').innerHTML = '';
+        entiteCount = 0;
+        associationCount = 0;
+
+        // Highlight active button
+        document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+        event.currentTarget.classList.add('active');
+
+        // Load
+        preset.entites.forEach(e => ajouterEntite(e));
+        preset.associations.forEach(a => ajouterAssociation(a));
+    }
+
+    /* ══════════════════════════════════════════════
+       COLLECT MCD FROM FORM
+       ══════════════════════════════════════════════ */
+    function collecterMCD() {
+        const entites = [];
+        document.querySelectorAll('#entites-container .card').forEach(card => {
+            const nom  = card.querySelector('.ent-nom').value.trim();
+            const cle  = card.querySelector('.ent-cle').value.trim();
+            const attrs = card.querySelector('.ent-attrs').value.trim()
+                .split(',').map(s => s.trim()).filter(s => s);
+            if (nom && cle && attrs.length > 0) {
+                entites.push({ nom, cle, attributs: attrs });
+            }
+        });
+
+        const associations = [];
+        document.querySelectorAll('#associations-container .card').forEach(card => {
+            const nom = card.querySelector('.asso-nom').value.trim();
+            const e1  = card.querySelector('.asso-e1').value.trim();
+            const e2  = card.querySelector('.asso-e2').value.trim();
+            const c1  = card.querySelector('.asso-c1').value.trim();
+            const c2  = card.querySelector('.asso-c2').value.trim();
+            const attrsStr = card.querySelector('.asso-attrs').value.trim();
+            const attrs = attrsStr ? attrsStr.split(',').map(s => s.trim()).filter(s => s) : [];
+            if (nom && e1 && e2 && c1 && c2) {
+                associations.push({
+                    nom,
+                    entites: [e1, e2],
+                    cardinalites: [c1, c2],
+                    attributs: attrs
+                });
+            }
+        });
+
+        return { entites, associations };
+    }
+
+    /* ══════════════════════════════════════════════
+       TRANSFORM
+       ══════════════════════════════════════════════ */
+    async function transformer() {
+        const mcd = collecterMCD();
+        if (mcd.entites.length === 0) {
+            showToast("Ajoutez au moins une entité !");
+            return;
+        }
+        if (mcd.associations.length === 0) {
+            showToast("Ajoutez au moins une association !");
+            return;
+        }
+
+        const btn = document.getElementById('btn-transformer');
+        btn.classList.add('loading');
+        btn.textContent = '⏳ Transformation en cours...';
+
+        try {
+            const resp = await fetch('/api/transformer', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(mcd)
+            });
+
+            const data = await resp.json();
+
+            if (data.erreur) {
+                showToast(data.erreur);
+                return;
+            }
+
+            afficherResultat(data);
+        } catch (err) {
+            showToast("Erreur de connexion au serveur");
+            console.error(err);
+        } finally {
+            btn.classList.remove('loading');
+            btn.textContent = '⚡ Transformer MCD → MLD';
+        }
+    }
+
+    /* ══════════════════════════════════════════════
+       RENDER OUTPUT
+       ══════════════════════════════════════════════ */
+    function coloriserMLD(texte) {
+        // Format: TABLE_NAME(*pk, attr, #fk, *#pkfk)
+        return texte.replace(
+            /(\w+)\((.+)\)/,
+            (match, tableName, attrs) => {
+                const coloredAttrs = attrs.split(',').map(a => {
+                    a = a.trim();
+                    if (a.startsWith('*#')) return `<span class="mld-pkfk">${a}</span>`;
+                    if (a.startsWith('*'))  return `<span class="mld-pk">${a}</span>`;
+                    if (a.startsWith('#'))  return `<span class="mld-fk">${a}</span>`;
+                    return a;
+                }).join(', ');
+                return `<span class="mld-table-name">${tableName}</span>(${coloredAttrs})`;
+            }
+        );
+    }
+
+    function coloriserSQL(sql) {
+        const keywords = ['CREATE TABLE', 'PRIMARY KEY', 'FOREIGN KEY', 'REFERENCES', 'NOT NULL'];
+        const types = ['INTEGER', 'VARCHAR\\(\\d+\\)', 'DATE', 'DECIMAL\\(\\d+,\\s*\\d+\\)'];
+
+        let result = sql
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+
+        keywords.forEach(kw => {
+            const regex = new RegExp(`\\b${kw}\\b`, 'g');
+            result = result.replace(regex, `<span class="sql-keyword">${kw}</span>`);
+        });
+
+        types.forEach(t => {
+            const regex = new RegExp(`\\b${t}\\b`, 'g');
+            result = result.replace(regex, match => `<span class="sql-type">${match}</span>`);
+        });
+
+        return result;
+    }
+
+    function afficherResultat(data) {
+        const output = document.getElementById('output-content');
+        const nbTables = data.nb_tables;
+
+        let html = `
+            <div class="animate-in">
+                <div class="stats-bar">
+                    <div class="stat-chip">
+                        📊 Tables générées : <span class="stat-value">&nbsp;${nbTables}</span>
+                    </div>
+                    <div class="stat-chip">
+                        ✅ Transformation : <span class="stat-value">&nbsp;Réussie</span>
+                    </div>
+                </div>
+
+                <div class="mld-section">
+                    <div class="mld-section-title">
+                        📋 Notation MLD Merise
+                    </div>
+                    <div class="legend">
+                        <div class="legend-item"><div class="legend-dot pk"></div> *Clé Primaire</div>
+                        <div class="legend-item"><div class="legend-dot fk"></div> #Clé Étrangère</div>
+                        <div class="legend-item"><div class="legend-dot pkfk"></div> *#PK + FK</div>
+                    </div>
+                    <div class="mld-notation">
+        `;
+
+        data.mld_texte.forEach(ligne => {
+            html += `<div class="mld-line">${coloriserMLD(ligne.trim())}</div>`;
+        });
+
+        const sqlBrut = data.sql.join('\n');
+        html += `
+                    </div>
+                </div>
+
+                <div class="mld-section">
+                    <div class="mld-section-title">
+                        🗄️ Code SQL DDL
+                    </div>
+                    <div class="sql-container">
+                        <button class="copy-btn" onclick="copierSQL(this)">📋 Copier</button>
+                        <div class="sql-block" id="sql-output">${coloriserSQL(sqlBrut)}</div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        output.innerHTML = html;
+
+        // Store raw SQL for copy
+        output.dataset.sqlRaw = sqlBrut;
+    }
+
+    /* ══════════════════════════════════════════════
+       COPY SQL
+       ══════════════════════════════════════════════ */
+    function copierSQL(btn) {
+        const sql = document.getElementById('output-content').dataset.sqlRaw;
+        navigator.clipboard.writeText(sql).then(() => {
+            btn.textContent = '✅ Copié !';
+            btn.classList.add('copied');
+            setTimeout(() => {
+                btn.textContent = '📋 Copier';
+                btn.classList.remove('copied');
+            }, 2000);
+        });
+    }
+
+    /* ══════════════════════════════════════════════
+       TOAST
+       ══════════════════════════════════════════════ */
+    function showToast(message) {
+        const toast = document.getElementById('toast');
+        toast.textContent = message;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 3500);
+    }
+
+    /* ══════════════════════════════════════════════
+       INIT — Load Bibliothèque by default
+       ══════════════════════════════════════════════ */
+    window.addEventListener('DOMContentLoaded', () => {
+        // Add one empty entity + association as starting point
+        ajouterEntite();
+        ajouterAssociation();
+    });
+    </script>
+</body>
+</html>

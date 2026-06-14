@@ -1,0 +1,11 @@
+__pycache__/
+.vscode/
+*.pyc
+*.pyo
+.env
+modele_rf.pkl
+dataset_mcd.csv
+*.egg-info/
+dist/
+build/
+.DS_Store
