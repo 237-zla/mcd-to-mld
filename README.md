@@ -1,3 +1,10 @@
+---
+title: MCD to MLD
+sdk: gradio
+app_file: app.py
+license: mit
+---
+
 # MCD → MLD Transformer · Système IA Merise
 
 [![Hugging Face Spaces](https://img.shields.io/badge/Demo-HuggingFace-yellow)](https://huggingface.co/spaces/237-zla/mcd-mld)
